@@ -1,0 +1,67 @@
+buildscript {
+    ext.kotlin_version = '1.3.11'
+    repositories {
+//        maven { url "http://jcenter.bintray.com" }
+        maven { url 'http://repo1.maven.org/maven2' }
+        maven {
+//            url "https://jitpack.io"
+//            url "https://maven-central.storage.googleapis.com"
+//            url "http://repo.spring.io/plugins-release/"
+            url 'https://dl.bintray.com/kotlin/kotlin-dev/'
+        }
+//        mavenCentral()
+        google()
+//        jcenter()
+        maven {
+            url "https://jitpack.io"
+        }
+        maven {
+            url "https://maven-central.storage.googleapis.com"
+        }
+        maven {
+            url "http://repo.spring.io/plugins-release/"
+        }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+//        maven { url "http://jcenter.bintray.com" }
+        maven { url 'http://repo1.maven.org/maven2' }
+        maven {
+//            url "https://jitpack.io"
+//            url "https://maven-central.storage.googleapis.com"
+//            url "http://repo.spring.io/plugins-release/"
+            url 'https://dl.bintray.com/kotlin/kotlin-dev/'
+        }
+//        mavenCentral()
+        google()
+//        jcenter()
+        maven {
+            url "https://jitpack.io"
+        }
+        maven {
+            url "https://maven-central.storage.googleapis.com"
+        }
+        maven {
+            url "http://repo.spring.io/plugins-release/"
+        }
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
