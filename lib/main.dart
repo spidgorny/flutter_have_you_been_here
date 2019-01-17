@@ -168,15 +168,26 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              currentLocation.toString(),
-            ),
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          error != null
+              ? Row(
+                  children: <Widget>[Text(error)],
+                )
+              : Container(),
+          Text(
+            'Location: ' + currentLocation.toString(),
+          ),
+          places.length > 0
+              ? Column(
+                  children: places.map((Page p) {
+                  return ListTile(
+                    title: Text(p.title),
+                  );
+                }).toList())
+              : Container()
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
