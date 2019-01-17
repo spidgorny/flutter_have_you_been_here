@@ -10,7 +10,7 @@ description: Have You Been Here? Location-aware POI database.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   location: ^1.4.1
   flutter_local_notifications: ^0.3.7
+  http: ^0.12.0+1
 
 dev_dependencies:
   flutter_test:
