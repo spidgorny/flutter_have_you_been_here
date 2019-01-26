@@ -62,10 +62,6 @@ class Page {
 
   String get image {
     var source = null != thumbnail ? thumbnail['source'] : null;
-    if (null != source) {
-//      print(source);
-      return source;
-    }
-    return '';
+    return source;
   }
 }

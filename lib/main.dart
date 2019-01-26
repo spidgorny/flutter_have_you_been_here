@@ -155,7 +155,11 @@ class _MyHomePageState extends State<MyHomePage> {
           print(p.toJson());
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LocationInfoPage(model: p)),
+            MaterialPageRoute(
+                builder: (context) => LocationInfoPage(
+                      model: p,
+                      currentLocation: currentLocation,
+                    )),
           );
         },
       );
