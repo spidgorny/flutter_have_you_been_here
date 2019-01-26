@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_have_you_been_here/LocationInfoPage.dart';
+import 'package:flutter_have_you_been_here/LocationType.dart';
+import 'package:flutter_have_you_been_here/Page.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
@@ -17,72 +20,6 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(title: 'POI nearby'),
     );
-  }
-}
-
-class LocationType {
-  double latitude;
-  double longitude;
-  double altitude;
-  double speed;
-  double speed_accuracy;
-  double accuracy;
-
-  LocationType(this.latitude, this.longitude, [this.altitude]);
-
-  LocationType.fromResult(Map<String, double> data)
-      : this.latitude = data['latitude'],
-        this.longitude = data['longitude'],
-        this.altitude = data['altitude'],
-        this.speed = data['speed'],
-        this.speed_accuracy = data['speed_accuracy'],
-        this.accuracy = data['accuracy'];
-
-  String toString() {
-    return 'Lat: $latitude, Lon: $longitude, Alt: $altitude';
-  }
-}
-
-class Page {
-  int pageid;
-  int ns;
-  String title;
-  int index;
-  List coordinates;
-  Map thumbnail;
-  Map terms;
-  String contentmodel;
-  String pagelanguage;
-  String pagelanguagehtmlcode;
-  String pagelanguagedir;
-  String touched;
-  int lastrevid;
-  int length;
-  String fullurl;
-  String editurl;
-  String extract;
-
-  Page.fromJson(Map<String, dynamic> data)
-      : this.pageid = data['pageid'],
-        this.ns = data['ns'],
-        this.title = data['title'],
-        this.index = data['index'],
-        this.coordinates = data['coordinates'],
-        this.thumbnail = data['thumbnail'],
-        this.terms = data['terms'],
-        this.contentmodel = data['contentmodel'],
-        this.pagelanguage = data['pagelanguage'],
-        this.pagelanguagehtmlcode = data['pagelanguagehtmlcode'],
-        this.pagelanguagedir = data['pagelanguagedir'],
-        this.touched = data['touched'],
-        this.lastrevid = data['lastrevid'],
-        this.length = data['length'],
-        this.fullurl = data['fullurl'],
-        this.editurl = data['editurl'],
-        this.extract = data['extract'];
-
-  String toString() {
-    return 'Page {$title}';
   }
 }
 
@@ -122,12 +59,15 @@ class _MyHomePageState extends State<MyHomePage> {
       var places = await queryWikipedia(
           currentLocation.latitude, currentLocation.longitude);
       //print(places);
+      setState(() {
+        this.places = places;
+      });
     } on Exception {
       currentLocation = null;
     }
   }
 
-  Future<String> queryWikipedia(double lat, double lon,
+  Future<List<Page>> queryWikipedia(double lat, double lon,
       [double radius = 1000]) async {
     var url = 'https://en.wikipedia.org/w/api.php?action=query' +
         '&prop=coordinates%7Cpageimages%7Cpageterms%7Cinfo%7Cextracts' +
@@ -153,7 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
         print(page);
         places.add(page);
       }
-      return res.body;
+      print(places.first);
+      return places;
     } else {
       setState(() {
         this.error = res.reasonPhrase;
@@ -165,10 +106,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Column(
+      appBar: AppBar(title: Text(widget.title), actions: [
+        Text(
+          currentLocation.toString(),
+        )
+      ]),
+      body: SingleChildScrollView(
+          child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           error != null
@@ -176,19 +120,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: <Widget>[Text(error)],
                 )
               : Container(),
-          Text(
-            'Location: ' + currentLocation.toString(),
-          ),
           places.length > 0
-              ? Column(
-                  children: places.map((Page p) {
-                  return ListTile(
-                    title: Text(p.title),
-                  );
-                }).toList())
-              : Container()
+              ? Column(children: getPlaceTiles())
+              : Center(child: Text('Nothing interesing nearby ¯\\_(ツ)_/¯')),
         ],
-      ),
+      )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           notifyTest();
@@ -197,6 +133,40 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  List<Widget> getPlaceTiles() {
+    var tiles = places.map((Page p) {
+      var distance = p.distanceTo(currentLocation);
+      return ListTile(
+        title: Text(p.title),
+        leading: p.image != null
+            ? Image.network(
+                p.image,
+                width: 64,
+              )
+            : null,
+        trailing: distance != null
+            ? Chip(
+                label: Text(distance.toStringAsFixed(2) + ' m'),
+              )
+            : null,
+        onTap: () async {
+          print(p.toJson());
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LocationInfoPage(model: p)),
+          );
+        },
+      );
+    }).toList();
+
+    List<Widget> withDivs = [];
+    for (var tile in tiles) {
+      withDivs.add(tile);
+      withDivs.add(Divider());
+    }
+    return withDivs;
   }
 
   void notifyTest() async {
@@ -214,11 +184,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-        'your channel id', 'your channel name', 'your channel description',
+        'Channel1', 'Channel for Notifications', 'To notify about POI nearby',
         importance: Importance.Max, priority: Priority.High);
     var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
     var platformChannelSpecifics = new NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+
     await flutterLocalNotificationsPlugin.show(
         0, 'plain title', 'plain body', platformChannelSpecifics,
         payload: 'item id 2');
