@@ -25,6 +25,7 @@ dependencies:
   haversine: ^1.0.2
   flutter_map: ^0.1.4
   map_native: ^0.0.11
+  url_launcher: ^4.2.0+1
 
 dev_dependencies:
   flutter_test:

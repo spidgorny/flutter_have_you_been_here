@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_have_you_been_here/LocationType.dart';
 import 'package:flutter_have_you_been_here/Page.dart';
 import 'package:map_native/map_native.dart';
+import 'package:url_launcher/url_launcher.dart';
 //import 'package:flutter_map/flutter_map.dart';
 //import 'package:latlong/latlong.dart';
 
@@ -77,12 +78,22 @@ class LocationInfoPage extends StatelessWidget {
                     model.image,
                   )
                 : Container(),
-            distance != null
-                ? Chip(
-                    avatar: Icon(Icons.location_on),
-                    label: Text(distance.toStringAsFixed(2) + ' m'),
-                  )
-                : Container(),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              distance != null
+                  ? Chip(
+                      avatar: Icon(Icons.location_on),
+                      label: Text(distance.toStringAsFixed(2) + ' m'),
+                    )
+                  : Container(),
+              RaisedButton(
+                child: Text('Open Wikipedia'),
+                onPressed: () async {
+                  if (await canLaunch(model.fullurl)) {
+                    await launch(model.fullurl);
+                  }
+                },
+              ),
+            ]),
             map3,
           ]),
         ));
