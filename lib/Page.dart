@@ -1,5 +1,6 @@
 import 'package:flutter_have_you_been_here/LocationType.dart';
 import 'package:haversine/haversine.dart';
+import 'package:map_native/map_native.dart';
 
 class Page {
   int pageid;
@@ -38,6 +39,14 @@ class Page {
         this.fullurl = data['fullurl'],
         this.editurl = data['editurl'],
         this.extract = data['extract'];
+
+  get latLong {
+    if (coordinates.length > 0) {
+      var pos = coordinates[0];
+      return LatLong(pos['lat'], pos['lon']);
+    }
+    return null;
+  }
 
   double distanceTo(LocationType base) {
     if (coordinates.length > 0) {
