@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_have_you_been_here/LocationType.dart';
-import 'package:flutter_have_you_been_here/Page.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:map_native/map_native.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'LocationType.dart';
+import 'Page.dart';
 //import 'package:flutter_map/flutter_map.dart';
 //import 'package:latlong/latlong.dart';
 
@@ -78,6 +80,12 @@ class LocationInfoPage extends StatelessWidget {
                     model.image,
                   )
                 : Container(),
+//            Text(model.extract),
+//            HtmlView(data: model.extract),
+            Html(
+              data: model.extract,
+              padding: EdgeInsets.all(16),
+            ),
             Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
               distance != null
                   ? Chip(

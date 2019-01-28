@@ -1,6 +1,7 @@
-import 'package:flutter_have_you_been_here/LocationType.dart';
 import 'package:haversine/haversine.dart';
 import 'package:map_native/map_native.dart';
+
+import 'LocationType.dart';
 
 class Page {
   int pageid;

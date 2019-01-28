@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_have_you_been_here/LocationInfoPage.dart';
-import 'package:flutter_have_you_been_here/LocationType.dart';
-import 'package:flutter_have_you_been_here/Page.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+
+import 'LocationInfoPage.dart';
+import 'LocationType.dart';
+import 'Page.dart';
 
 void main() => runApp(MyApp());
 
