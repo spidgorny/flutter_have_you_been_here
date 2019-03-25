@@ -1,10 +1,12 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_have_you_been_here/NotifyService.dart';
+import 'package:flutter_have_you_been_here/POIService.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:location/location.dart';
+import 'package:package_info/package_info.dart';
 
 import 'LocationInfoPage.dart';
 import 'LocationType.dart';
@@ -13,6 +15,23 @@ import 'Page.dart';
 /// This "Headless Task" is run when app is terminated.
 void backgroundFetchHeadlessTask() async {
   print('[BackgroundFetch] Headless event received.');
+
+  var location = new Location();
+
+  var locationData = await location.getLocation();
+  print(locationData);
+  LocationType currentLocation = LocationType.fromResult(locationData);
+  print(currentLocation);
+
+  var poi = POIService();
+  var places = await poi.queryWikipedia(
+      currentLocation.latitude, currentLocation.longitude);
+  print(places);
+  if (places.length > 0) {
+    var ns = NotifyService();
+    ns.notifyTest();
+  }
+
   BackgroundFetch.finish();
 }
 
@@ -50,14 +69,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Page> places = [];
 
+  String title;
+
   @override
   void initState() {
     super.initState();
-    initAsyncState();
+    this.title = widget.title;
+    initPackageInfo();
+    refresh();
     initPlatformState();
   }
 
-  void initAsyncState() async {
+  initPackageInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    print(packageInfo);
+    title += ' v' + packageInfo.version;
+  }
+
+  Future refresh() async {
     var location = new Location();
 
     try {
@@ -68,8 +97,9 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         currentLocation = tmp;
       });
-      var places = await queryWikipedia(
-          currentLocation.latitude, currentLocation.longitude);
+
+      var poi = POIService();
+      var places = await poi.queryWikipedia(tmp.latitude, tmp.longitude);
       //print(places);
       setState(() {
         this.places = places;
@@ -120,6 +150,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
+
+    enableBG();
   }
 
   enableBG() {
@@ -136,67 +168,45 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<List<Page>> queryWikipedia(double lat, double lon,
-      [double radius = 1000]) async {
-    var url = 'https://en.wikipedia.org/w/api.php?action=query' +
-        '&prop=coordinates%7Cpageimages%7Cpageterms%7Cinfo%7Cextracts' +
-        '&exintro=1' +
-        // '&srprop=titlesnippet'+
-        '&colimit=50&piprop=thumbnail&pithumbsize=708&pilimit=50' +
-        '&wbptterms=description' +
-        '&inprop=url' +
-        '&iwurl=1' +
-        '&list=alllinks' +
-        '&generator=geosearch' +
-        '&ggscoord=${lat.toString()}%7C' +
-        lon.toString() +
-        '&ggsradius=' +
-        radius.toString() +
-        '&ggslimit=50&format=json&origin=*';
-    print(url);
-    var res = await http.get(url);
-    if (res.statusCode == 200) {
-      var json = jsonDecode(res.body);
-      for (var p in Map<String, dynamic>.from(json['query']['pages']).values) {
-        var page = Page.fromJson(p);
-        print(page);
-        places.add(page);
-      }
-      print(places.first);
-      return places;
-    } else {
-      setState(() {
-        this.error = res.reasonPhrase;
-      });
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title), actions: [
+      appBar: AppBar(title: Text(title), actions: [
         Text(
           currentLocation.toString(),
         )
       ]),
-      body: SingleChildScrollView(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          error != null
-              ? Row(
-                  children: <Widget>[Text(error)],
-                )
-              : Container(),
-          places.length > 0
-              ? Column(children: getPlaceTiles())
-              : Center(child: Text('Nothing interesing nearby ¯\\_(ツ)_/¯')),
-        ],
-      )),
+      body: Container(
+          child:
+//          child: Column(
+//        mainAxisAlignment: MainAxisAlignment.start,
+//              children: <Widget>[
+//          error != null
+//              ? Row(
+//                  children: <Widget>[Text(error)],
+//                )
+//              : Container(),
+              LiquidPullToRefresh(
+        onRefresh: () {
+          print('refresh');
+          return this.refresh();
+        },
+        child: places.length > 0
+            ? ListView(shrinkWrap: true, children: getPlaceTiles())
+            : ListView(shrinkWrap: true, children: [
+                ListTile(title: Text('Nothing interesing nearby ¯\\_(ツ)_/¯'))
+              ]),
+      )
+//        ],
+//      )
+//          ])
+          ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          notifyTest();
+          print('+ pressed');
+          //var ns = NotifyService();
+          //ns.notifyTest();
+          backgroundFetchHeadlessTask();
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
@@ -240,31 +250,5 @@ class _MyHomePageState extends State<MyHomePage> {
       withDivs.add(Divider());
     }
     return withDivs;
-  }
-
-  void notifyTest() async {
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        new FlutterLocalNotificationsPlugin();
-    var initializationSettingsAndroid =
-        new AndroidInitializationSettings('@mipmap/ic_launcher');
-    var initializationSettingsIOS = new IOSInitializationSettings();
-    var initializationSettings = new InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        selectNotification: (string) {
-      print('onSelect');
-    });
-
-    var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
-        'Channel1', 'Channel for Notifications', 'To notify about POI nearby',
-        importance: Importance.Max, priority: Priority.High);
-    var iOSPlatformChannelSpecifics = new IOSNotificationDetails();
-    var platformChannelSpecifics = new NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-
-    await flutterLocalNotificationsPlugin.show(
-        0, 'plain title', 'plain body', platformChannelSpecifics,
-        payload: 'item id 2');
   }
 }
