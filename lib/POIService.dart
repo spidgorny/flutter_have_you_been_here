@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_have_you_been_here/LocationType.dart';
 import 'package:flutter_have_you_been_here/Page.dart';
 import 'package:http/http.dart' as http;
 
@@ -33,7 +34,13 @@ class POIService {
 //          print(page);
           places.add(page);
         }
-        print(places.first);
+//        print(places.first);
+        LocationType userLocation = LocationType(lat, lon);
+        places.sort((p1, p2) {
+          return p1.distanceTo(userLocation) < p2.distanceTo(userLocation)
+              ? -1
+              : 1;
+        });
       }
       return places;
     } else {

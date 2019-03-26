@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
       });
 
       var poi = POIService();
-      for (double r = initialRadius; r < 10000; r *= 2) {
+      for (double r = radius; r < 10000; r *= 2) {
         setState(() {
           radius = r;
         });
