@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   initPackageInfo() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    print(packageInfo);
+    //print(packageInfo);
     title += ' v' + packageInfo.version;
   }
 
@@ -109,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  int _status = 0;
+  String _status = '';
   List<DateTime> _events = [];
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -131,19 +131,19 @@ class _MyHomePageState extends State<MyHomePage> {
     }).then((int status) {
       print('[BackgroundFetch] SUCCESS: $status');
       setState(() {
-        _status = status;
+        _status = status.toString();
       });
     }).catchError((e) {
       print('[BackgroundFetch] ERROR: $e');
       setState(() {
-        _status = e;
+        _status = e.toString();
       });
     });
 
     // Optionally query the current BackgroundFetch status.
     int status = await BackgroundFetch.status;
     setState(() {
-      _status = status;
+      _status = status.toString();
     });
 
     // If the widget was removed from the tree while the asynchronous platform
@@ -172,8 +172,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: [
-        Text(
-          currentLocation.toString(),
+        Padding(padding: const EdgeInsets.all(8.0), child: Text(this._status)),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            currentLocation.toString(),
+          ),
         )
       ]),
       body: Container(
