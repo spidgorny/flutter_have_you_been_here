@@ -71,6 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String title;
 
+  static double initialRadius = 100;
+  double radius = initialRadius;
+
   @override
   void initState() {
     super.initState();
@@ -99,7 +102,20 @@ class _MyHomePageState extends State<MyHomePage> {
       });
 
       var poi = POIService();
-      var places = await poi.queryWikipedia(tmp.latitude, tmp.longitude);
+      for (double r = initialRadius; r < 10000; r *= 2) {
+        setState(() {
+          radius = r;
+        });
+        var places = await poi.queryWikipedia(tmp.latitude, tmp.longitude, r);
+        print(places.length);
+        // search for bigger and bigger radius until something is visible
+        if (places.length > 0) {
+          setState(() {
+            this.places = places;
+          });
+          break;
+        }
+      }
       //print(places);
       setState(() {
         this.places = places;
@@ -172,9 +188,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: [
-        Padding(padding: const EdgeInsets.all(8.0), child: Text(this._status)),
+        Padding(padding: const EdgeInsets.all(16.0), child: Text(this._status)),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             currentLocation.toString(),
           ),
@@ -198,7 +214,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: places.length > 0
             ? ListView(shrinkWrap: true, children: getPlaceTiles())
             : ListView(shrinkWrap: true, children: [
-                ListTile(title: Text('Nothing interesing nearby ¯\\_(ツ)_/¯'))
+                ListTile(
+                    title: Text(
+                        'Nothing interesing within ${(radius / 1000).toStringAsFixed(3)} km nearby ¯\\_(ツ)_/¯.'
+                        'Pull down to refresh'))
               ]),
       )
 //        ],
@@ -253,6 +272,13 @@ class _MyHomePageState extends State<MyHomePage> {
       withDivs.add(tile);
       withDivs.add(Divider());
     }
+    withDivs.add(ListTile(
+      title: Text('Load more...'),
+      onTap: () {
+        radius *= 2;
+        refresh();
+      },
+    ));
     return withDivs;
   }
 }

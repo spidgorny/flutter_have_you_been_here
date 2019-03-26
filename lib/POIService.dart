@@ -26,12 +26,15 @@ class POIService {
     if (res.statusCode == 200) {
       var json = jsonDecode(res.body);
       List<Page> places = [];
-      for (var p in Map<String, dynamic>.from(json['query']['pages']).values) {
-        var page = Page.fromJson(p);
-        print(page);
-        places.add(page);
+      if (json.containsKey('query') && json['query'].containsKey('pages')) {
+        var pages = Map<String, dynamic>.from(json['query']['pages']);
+        for (var p in pages.values) {
+          var page = Page.fromJson(p);
+//          print(page);
+          places.add(page);
+        }
+        print(places.first);
       }
-      print(places.first);
       return places;
     } else {
       print(res.reasonPhrase);
