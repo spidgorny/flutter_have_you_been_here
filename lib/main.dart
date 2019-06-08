@@ -4,13 +4,12 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_have_you_been_here/NotifyService.dart';
 import 'package:flutter_have_you_been_here/POIService.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
 
-import 'LocationInfoPage.dart';
 import 'LocationType.dart';
-import 'Page.dart';
+import 'Places.dart';
+import 'PlacesListView.dart';
 
 /// This "Headless Task" is run when app is terminated.
 void backgroundFetchHeadlessTask() async {
@@ -48,15 +47,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'POI nearby'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key}) : super(key: key);
 
-  final String title;
+  String title = 'POI nearby';
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -67,12 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String error;
 
-  List<Page> places = [];
-
   String title;
 
-  static double initialRadius = 100;
-  double radius = initialRadius;
+  Places places;
+
+  String _status = '';
+
+  List<DateTime> _events = [];
 
   @override
   void initState() {
@@ -101,32 +101,15 @@ class _MyHomePageState extends State<MyHomePage> {
         currentLocation = tmp;
       });
 
-      var poi = POIService();
-      for (double r = radius; r < 10000; r *= 2) {
-        setState(() {
-          radius = r;
-        });
-        var places = await poi.queryWikipedia(tmp.latitude, tmp.longitude, r);
-        print(places.length);
-        // search for bigger and bigger radius until something is visible
-        if (places.length > 0) {
-          setState(() {
-            this.places = places;
-          });
-          break;
-        }
-      }
-      //print(places);
-      setState(() {
-        this.places = places;
-      });
+      places = Places(
+        currentLocation: currentLocation,
+        stateChanged: () => this.setState(() => {}),
+      );
+      places.refresh(currentLocation);
     } on Exception {
       currentLocation = null;
     }
   }
-
-  String _status = '';
-  List<DateTime> _events = [];
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
@@ -197,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
         )
       ]),
       body: Container(
-          child:
+        child:
 //          child: Column(
 //        mainAxisAlignment: MainAxisAlignment.start,
 //              children: <Widget>[
@@ -206,24 +189,13 @@ class _MyHomePageState extends State<MyHomePage> {
 //                  children: <Widget>[Text(error)],
 //                )
 //              : Container(),
-              LiquidPullToRefresh(
-        onRefresh: () {
-          print('refresh');
-          return this.refresh();
-        },
-        child: places.length > 0
-            ? ListView(shrinkWrap: true, children: getPlaceTiles())
-            : ListView(shrinkWrap: true, children: [
-                ListTile(
-                    title: Text(
-                        'Nothing interesing within ${(radius / 1000).toStringAsFixed(3)} km nearby ¯\\_(ツ)_/¯.'
-                        'Pull down to refresh'))
-              ]),
-      )
+            places != null
+                ? PlacesListView(places: places)
+                : ListTile(title: Text('Location not detected ¯\\_(ツ)_/¯.')),
 //        ],
 //      )
 //          ])
-          ),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print('+ pressed');
@@ -235,50 +207,5 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ),
     );
-  }
-
-  List<Widget> getPlaceTiles() {
-    var tiles = places.map((Page p) {
-      var distance = p.distanceTo(currentLocation);
-      return ListTile(
-        title: Text(p.title),
-        leading: p.image != null
-            ? Image.network(
-                p.image,
-                width: 64,
-              )
-            : null,
-        trailing: distance != null
-            ? Chip(
-                label: Text(distance.toStringAsFixed(2) + ' m'),
-              )
-            : null,
-        onTap: () async {
-          print(p.toJson());
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => LocationInfoPage(
-                      model: p,
-                      currentLocation: currentLocation,
-                    )),
-          );
-        },
-      );
-    }).toList();
-
-    List<Widget> withDivs = [];
-    for (var tile in tiles) {
-      withDivs.add(tile);
-      withDivs.add(Divider());
-    }
-    withDivs.add(ListTile(
-      title: Text('Load more...'),
-      onTap: () {
-        radius *= 2;
-        refresh();
-      },
-    ));
-    return withDivs;
   }
 }
