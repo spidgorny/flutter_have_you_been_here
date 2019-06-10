@@ -18,9 +18,9 @@ class Places {
 
   double radius = initialRadius;
 
-  Future refresh([LocationType currentLocation]) async {
-    if (currentLocation != null) {
-      this.currentLocation = currentLocation;
+  Future refresh([LocationType curLoc]) async {
+    if (curLoc != null) {
+      this.currentLocation = curLoc;
     }
     var poi = POIService();
     for (double r = radius; r < 10000; r *= 2) {
@@ -29,7 +29,7 @@ class Places {
       });
       var places = await poi.queryWikipedia(
           currentLocation.latitude, currentLocation.longitude, r);
-      print(places.length);
+      print('wiki places: ' + places.length.toString());
       // search for bigger and bigger radius until something is visible
       if (places.length > 0) {
         setState(() {
@@ -46,5 +46,6 @@ class Places {
 
   setState(VoidCallback callback) {
     callback();
+    stateChanged();
   }
 }

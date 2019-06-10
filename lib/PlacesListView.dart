@@ -33,7 +33,9 @@ class _PlacesState extends State<PlacesListView> {
   }
 
   List<Widget> getPlaceTiles() {
-    var tiles = widget.places.places.map((Page p) {
+    List<Widget> tiles = [];
+    tiles.add(Padding(padding: EdgeInsets.only(top: 4)));
+    tiles += widget.places.places.map((Page p) {
       var distance = p.distanceTo(widget.places.currentLocation);
       return ListTile(
         title: Text(p.title),

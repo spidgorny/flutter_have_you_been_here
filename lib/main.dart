@@ -6,6 +6,7 @@ import 'package:flutter_have_you_been_here/NotifyService.dart';
 import 'package:flutter_have_you_been_here/POIService.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
+import 'package:provider/provider.dart';
 
 import 'LocationType.dart';
 import 'Places.dart';
@@ -42,13 +43,17 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'POI nearby',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(),
-    );
+    return MultiProvider(
+        providers: [
+          Provider<String>.value(value: 'foo'),
+        ],
+        child: MaterialApp(
+          title: 'POI nearby',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          home: MyHomePage(),
+        ));
   }
 }
 
@@ -102,9 +107,13 @@ class _MyHomePageState extends State<MyHomePage> {
       });
 
       places = Places(
-        currentLocation: currentLocation,
-        stateChanged: () => this.setState(() => {}),
-      );
+          currentLocation: currentLocation,
+          stateChanged: () {
+            print('main.dart setState calling');
+            this.setState(() {
+              print('main.dart setState called');
+            });
+          });
       places.refresh(currentLocation);
     } on Exception {
       currentLocation = null;
