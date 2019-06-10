@@ -75,9 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Places places;
 
-  String _status = '';
-
-  List<DateTime> _events = [];
+  bool loading = true;
 
   @override
   void initState() {
@@ -95,6 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future refresh() async {
+    print('refresh');
     var location = new Location();
 
     try {
@@ -104,55 +103,45 @@ class _MyHomePageState extends State<MyHomePage> {
       print(tmp);
       setState(() {
         currentLocation = tmp;
-      });
 
-      places = Places(
-          currentLocation: currentLocation,
-          stateChanged: () {
-            print('main.dart setState calling');
-            this.setState(() {
-              print('main.dart setState called');
+        loading = false;
+        places = Places(
+            currentLocation: currentLocation,
+            stateChanged: () {
+              print('main.dart setState calling');
+              this.setState(() {
+                print('main.dart setState called');
+              });
             });
-          });
-      places.refresh(currentLocation);
+        places.refresh(currentLocation);
+      });
     } on Exception {
-      currentLocation = null;
+      setState(() {
+        loading = false;
+        places = null;
+        currentLocation = null;
+      });
     }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     // Configure BackgroundFetch.
+    print('initPlatformState');
     BackgroundFetch.configure(
         BackgroundFetchConfig(
             minimumFetchInterval: 15,
             stopOnTerminate: false,
-            enableHeadless: true), () async {
-      // This is the fetch-event callback.
-      print('[BackgroundFetch] Event received');
-      setState(() {
-        _events.insert(0, new DateTime.now());
-      });
-      // IMPORTANT:  You must signal completion of your fetch task or the OS can punish your app
-      // for taking too long in the background.
-      BackgroundFetch.finish();
+            enableHeadless: true), () {
+      backgroundFetchEventAction();
     }).then((int status) {
       print('[BackgroundFetch] SUCCESS: $status');
-      setState(() {
-        _status = status.toString();
-      });
     }).catchError((e) {
       print('[BackgroundFetch] ERROR: $e');
-      setState(() {
-        _status = e.toString();
-      });
     });
 
     // Optionally query the current BackgroundFetch status.
-    int status = await BackgroundFetch.status;
-    setState(() {
-      _status = status.toString();
-    });
+//    int status = await BackgroundFetch.status;
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -180,7 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(title), actions: [
-        Padding(padding: const EdgeInsets.all(16.0), child: Text(this._status)),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
@@ -198,9 +186,12 @@ class _MyHomePageState extends State<MyHomePage> {
 //                  children: <Widget>[Text(error)],
 //                )
 //              : Container(),
-            places != null
-                ? PlacesListView(places: places)
-                : ListTile(title: Text('Location not detected ¯\\_(ツ)_/¯.')),
+            loading
+                ? Center(child: CircularProgressIndicator())
+                : places != null
+                    ? PlacesListView(places: places)
+                    : ListTile(
+                        title: Text('Location not detected ¯\\_(ツ)_/¯.')),
 //        ],
 //      )
 //          ])
@@ -216,5 +207,17 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  backgroundFetchEventAction() async {
+    // This is the fetch-event callback.
+    print('[BackgroundFetch] Event received');
+
+    loading = true;
+    this.refresh();
+
+    // IMPORTANT:  You must signal completion of your fetch task or the OS can punish your app
+    // for taking too long in the background.
+    BackgroundFetch.finish();
   }
 }
