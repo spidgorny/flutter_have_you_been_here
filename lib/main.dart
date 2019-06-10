@@ -98,6 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     try {
       var locationData = await location.getLocation();
+      print('refresh locationData');
       print(locationData);
       LocationType tmp = LocationType.fromResult(locationData);
       print(tmp);

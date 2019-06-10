@@ -51,6 +51,7 @@ class _PlacesState extends State<PlacesListView> {
               )
             : null,
         onTap: () async {
+          print('PlacesListView onTap');
           print(p.toJson());
           await Navigator.push(
             context,

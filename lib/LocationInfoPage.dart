@@ -18,9 +18,10 @@ class LocationInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('LocationInfoPage::build');
     print(currentLocation);
     var distance = model.distanceTo(currentLocation);
-    print(distance);
+    print('distance: ' + distance.toString());
 
 //    var map1 = FlutterMap(
 //      options: new MapOptions(
