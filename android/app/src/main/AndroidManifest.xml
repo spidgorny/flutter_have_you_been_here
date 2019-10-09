@@ -21,6 +21,10 @@
         android:label="Have You Been Here?"
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label">
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCQ8neGW_u9piXO6KWf_np2adEAvnC1Byc"/>
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

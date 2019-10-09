@@ -11,9 +11,7 @@ class NotifyService {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        selectNotification: (string) {
-      print('onSelect');
-    });
+        onSelectNotification: onSelectNotification);
 
     var androidPlatformChannelSpecifics = new AndroidNotificationDetails(
         'Channel1', 'Channel for Notifications', 'To notify about POI nearby',
@@ -25,5 +23,11 @@ class NotifyService {
     await flutterLocalNotificationsPlugin.show(
         0, 'plain title', 'plain body', platformChannelSpecifics,
         payload: 'item id 2');
+  }
+
+  Future onSelectNotification(String payload) async {
+    if (payload != null) {
+      print('notification payload: ' + payload);
+    }
   }
 }

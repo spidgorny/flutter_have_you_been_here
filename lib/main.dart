@@ -4,6 +4,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_have_you_been_here/NotifyService.dart';
 import 'package:flutter_have_you_been_here/POIService.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
@@ -76,6 +77,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Places places;
 
   bool loading = true;
+
+  Completer<GoogleMapController> _controller = Completer();
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(37.42796133580664, -122.085749655962),
+    zoom: 14.4746,
+  );
 
   @override
   void initState() {
@@ -178,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
         )
       ]),
       body: Container(
-        child:
+          child:
 //          child: Column(
 //        mainAxisAlignment: MainAxisAlignment.start,
 //              children: <Widget>[
@@ -187,16 +195,30 @@ class _MyHomePageState extends State<MyHomePage> {
 //                  children: <Widget>[Text(error)],
 //                )
 //              : Container(),
-            loading
-                ? Center(child: CircularProgressIndicator())
-                : places != null
-                    ? PlacesListView(places: places)
-                    : ListTile(
-                        title: Text('Location not detected ¯\\_(ツ)_/¯.')),
-//        ],
-//      )
-//          ])
-      ),
+              loading
+                  ? Center(child: CircularProgressIndicator())
+                  : places != null
+                      ? LayoutBuilder(builder: (context, constraints) {
+                          return ConstrainedBox(
+                              constraints: BoxConstraints(
+                                  minWidth: constraints.maxWidth,
+                                  minHeight: constraints.maxHeight),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    GoogleMap(
+                                      mapType: MapType.hybrid,
+                                      initialCameraPosition: _kGooglePlex,
+                                      onMapCreated:
+                                          (GoogleMapController controller) {
+                                        _controller.complete(controller);
+                                      },
+                                    ),
+                                    PlacesListView(places: places)
+                                  ]));
+                        })
+                      : ListTile(
+                          title: Text('Location not detected ¯\\_(ツ)_/¯.'))),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print('+ pressed');
