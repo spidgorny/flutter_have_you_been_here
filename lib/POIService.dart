@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter_have_you_been_here/LocationType.dart';
 import 'package:flutter_have_you_been_here/Page.dart';
 import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 
 class POIService {
   Future<List<Page>> queryWikipedia(double lat, double lon,
@@ -35,7 +35,8 @@ class POIService {
           places.add(page);
         }
 //        print(places.first);
-        LocationType userLocation = LocationType(lat, lon);
+        LocationData userLocation =
+            LocationData.fromMap({'latitude': lat, 'longitude': lon});
         places.sort((p1, p2) {
           return p1.distanceTo(userLocation) < p2.distanceTo(userLocation)
               ? -1

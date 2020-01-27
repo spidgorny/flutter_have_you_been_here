@@ -11,7 +11,7 @@ class NotifyService {
         initializationSettingsAndroid, initializationSettingsIOS);
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
     flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        selectNotification: (string) {
+        onSelectNotification: (string) {
       print('onSelect');
     });
 

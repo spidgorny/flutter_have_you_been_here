@@ -1,7 +1,6 @@
 import 'package:haversine/haversine.dart';
+import 'package:location/location.dart';
 import 'package:map_native/map_native.dart';
-
-import 'LocationType.dart';
 
 class Page {
   int pageid;
@@ -49,7 +48,7 @@ class Page {
     return null;
   }
 
-  double distanceTo(LocationType base) {
+  double distanceTo(LocationData base) {
     if (coordinates.length > 0) {
       var pos = coordinates[0];
       final harvesine = new Haversine.fromDegrees(

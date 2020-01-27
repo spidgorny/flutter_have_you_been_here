@@ -71,7 +71,7 @@ class _PlacesState extends State<PlacesListView> {
       withDivs.add(Divider());
     }
     withDivs.add(ListTile(
-      title: FlatButton(
+      title: RaisedButton(
         child: Text('Load more places...'),
         onPressed: () {
           widget.places.radius *= 2;

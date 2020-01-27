@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 
-import 'LocationType.dart';
 import 'POIService.dart';
 import 'Page.dart';
 
 class Places {
   final VoidCallback stateChanged;
 
-  LocationType currentLocation;
+  LocationData currentLocation;
 
   Places(
       {Key key, @required this.currentLocation, @required this.stateChanged});
@@ -18,7 +18,7 @@ class Places {
 
   double radius = initialRadius;
 
-  Future refresh([LocationType curLoc]) async {
+  Future refresh([LocationData curLoc]) async {
     if (curLoc != null) {
       this.currentLocation = curLoc;
     }

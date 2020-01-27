@@ -2,13 +2,12 @@ import 'dart:async';
 
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_have_you_been_here/NotifyService.dart';
-import 'package:flutter_have_you_been_here/POIService.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 
-import 'LocationType.dart';
+import './NotifyService.dart';
+import './POIService.dart';
 import 'Places.dart';
 import 'PlacesListView.dart';
 
@@ -18,9 +17,7 @@ void backgroundFetchHeadlessTask() async {
 
   var location = new Location();
 
-  var locationData = await location.getLocation();
-  print(locationData);
-  LocationType currentLocation = LocationType.fromResult(locationData);
+  LocationData currentLocation = await location.getLocation();
   print(currentLocation);
 
   var poi = POIService();
@@ -67,7 +64,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  LocationType currentLocation;
+  LocationData currentLocation;
 
   String error;
 
@@ -97,13 +94,11 @@ class _MyHomePageState extends State<MyHomePage> {
     var location = new Location();
 
     try {
-      var locationData = await location.getLocation();
+      LocationData locationData = await location.getLocation();
       print('refresh locationData');
       print(locationData);
-      LocationType tmp = LocationType.fromResult(locationData);
-      print(tmp);
       setState(() {
-        currentLocation = tmp;
+        currentLocation = locationData;
 
         loading = false;
         places = Places(
@@ -169,11 +164,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title), actions: [
+      appBar: AppBar(title: Text(title), centerTitle: false, actions: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20),
           child: Text(
-            currentLocation.toString(),
+            currentLocation.latitude.toStringAsFixed(2) +
+                ', ' +
+                currentLocation.longitude.toStringAsFixed(2),
           ),
         )
       ]),
@@ -197,16 +194,16 @@ class _MyHomePageState extends State<MyHomePage> {
 //      )
 //          ])
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('+ pressed');
-          //var ns = NotifyService();
-          //ns.notifyTest();
-          backgroundFetchHeadlessTask();
-        },
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+//      floatingActionButton: FloatingActionButton(
+//        onPressed: () {
+//          print('+ pressed');
+//          //var ns = NotifyService();
+//          //ns.notifyTest();
+//          backgroundFetchHeadlessTask();
+//        },
+//        tooltip: 'Increment',
+//        child: Icon(Icons.add),
+//      ),
     );
   }
 
