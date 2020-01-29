@@ -1,40 +1,16 @@
 import 'dart:async';
 
-import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 
-import './NotifyService.dart';
-import './POIService.dart';
 import 'Places.dart';
 import 'PlacesListView.dart';
 
-/// This "Headless Task" is run when app is terminated.
-void backgroundFetchHeadlessTask() async {
-  print('[BackgroundFetch] Headless event received.');
-
-  var location = new Location();
-
-  LocationData currentLocation = await location.getLocation();
-  print(currentLocation);
-
-  var poi = POIService();
-  var places = await poi.queryWikipedia(
-      currentLocation.latitude, currentLocation.longitude);
-  print(places);
-  if (places.length > 0) {
-    var ns = NotifyService();
-    ns.notifyTest();
-  }
-
-  BackgroundFetch.finish();
-}
-
 void main() {
   runApp(MyApp());
-  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+//  BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
 }
 
 class MyApp extends StatelessWidget {
@@ -124,17 +100,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> initPlatformState() async {
     // Configure BackgroundFetch.
     print('initPlatformState');
-    BackgroundFetch.configure(
-        BackgroundFetchConfig(
-            minimumFetchInterval: 15,
-            stopOnTerminate: false,
-            enableHeadless: true), () {
-      backgroundFetchEventAction();
-    }).then((int status) {
-      print('[BackgroundFetch] SUCCESS: $status');
-    }).catchError((e) {
-      print('[BackgroundFetch] ERROR: $e');
-    });
+
+    // backgroundFetch.init();
 
     // Optionally query the current BackgroundFetch status.
 //    int status = await BackgroundFetch.status;
@@ -144,21 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // setState to update our non-existent appearance.
     if (!mounted) return;
 
-    enableBG();
-  }
-
-  enableBG() {
-    BackgroundFetch.start().then((int status) {
-      print('[BackgroundFetch] start success: $status');
-    }).catchError((e) {
-      print('[BackgroundFetch] start FAILURE: $e');
-    });
-  }
-
-  disableBG() {
-    BackgroundFetch.stop().then((int status) {
-      print('[BackgroundFetch] stop success: $status');
-    });
+    //enableBG();
   }
 
   @override
@@ -216,6 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // IMPORTANT:  You must signal completion of your fetch task or the OS can punish your app
     // for taking too long in the background.
-    BackgroundFetch.finish();
+    //BackgroundFetch.finish();
   }
 }

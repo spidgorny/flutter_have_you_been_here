@@ -1,0 +1,51 @@
+void backgroundFetchHeadlessTask() async {
+  print('[BackgroundFetch] Headless event received.');
+
+  var location = new Location();
+
+  LocationData currentLocation = await location.getLocation();
+  print(currentLocation);
+
+  var poi = POIService();
+  var places = await poi.queryWikipedia(
+      currentLocation.latitude, currentLocation.longitude);
+  print(places);
+  if (places.length > 0) {
+    var ns = NotifyService();
+    ns.notifyTest();
+  }
+
+  BackgroundFetch.finish();
+}
+
+class BackgroundFetch {
+
+    void init() {
+        BackgroundFetch.configure(
+            BackgroundFetchConfig(
+                minimumFetchInterval: 15,
+                stopOnTerminate: false,
+                enableHeadless: true), () {
+          backgroundFetchEventAction();
+        }).then((int status) {
+          print('[BackgroundFetch] SUCCESS: $status');
+        }).catchError((e) {
+          print('[BackgroundFetch] ERROR: $e');
+        });
+    }
+
+      enableBG() {
+        BackgroundFetch.start().then((int status) {
+          print('[BackgroundFetch] start success: $status');
+        }).catchError((e) {
+          print('[BackgroundFetch] start FAILURE: $e');
+        });
+      }
+
+      disableBG() {
+        BackgroundFetch.stop().then((int status) {
+          print('[BackgroundFetch] stop success: $status');
+        });
+      }
+
+}
