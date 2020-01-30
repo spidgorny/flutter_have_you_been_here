@@ -120,11 +120,13 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(title: Text(title), centerTitle: false, actions: [
         Padding(
           padding: const EdgeInsets.all(20),
-          child: Text(
-            currentLocation.latitude.toStringAsFixed(2) +
-                ', ' +
-                currentLocation.longitude.toStringAsFixed(2),
-          ),
+          child: currentLocation != null
+              ? Text(
+                  currentLocation.latitude.toStringAsFixed(2) +
+                      ', ' +
+                      currentLocation.longitude.toStringAsFixed(2),
+                )
+              : Container(),
         )
       ]),
       body: Container(
