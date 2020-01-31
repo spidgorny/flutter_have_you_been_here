@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 
+import 'Page.dart';
 import 'Places.dart';
 import 'PlacesListView.dart';
 
@@ -49,6 +51,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Places places;
 
   bool loading = true;
+
+  Completer<GoogleMapController> _controller = Completer();
 
   @override
   void initState() {
@@ -114,8 +118,32 @@ class _MyHomePageState extends State<MyHomePage> {
     //enableBG();
   }
 
+  Set<Marker> placesToMarkers() {
+    return places.places.map((Page p) {
+      return Marker(
+          markerId: MarkerId(p.pageid.toString()),
+          position: LatLng(p.latLong.lat, p.latLong.long));
+    }).toSet();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var googleMap = currentLocation != null
+        ? GoogleMap(
+            mapType: MapType.hybrid,
+            initialCameraPosition: CameraPosition(
+              target:
+                  LatLng(currentLocation.latitude, currentLocation.longitude),
+              zoom: 14.4746,
+            ),
+            onMapCreated: (GoogleMapController controller) async {
+              _controller.complete(controller);
+//              final GoogleMapController controller2 = await _controller.future;
+            },
+            markers: this.placesToMarkers(),
+          )
+        : Center(child: CircularProgressIndicator());
+
     return Scaffold(
       appBar: AppBar(title: Text(title), centerTitle: false, actions: [
         Padding(
@@ -130,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
         )
       ]),
       body: Container(
-        child:
+          child:
 //          child: Column(
 //        mainAxisAlignment: MainAxisAlignment.start,
 //              children: <Widget>[
@@ -139,26 +167,16 @@ class _MyHomePageState extends State<MyHomePage> {
 //                  children: <Widget>[Text(error)],
 //                )
 //              : Container(),
-            loading
-                ? Center(child: CircularProgressIndicator())
-                : places != null
-                    ? PlacesListView(places: places)
-                    : ListTile(
-                        title: Text('Location not detected ¯\\_(ツ)_/¯.')),
-//        ],
-//      )
-//          ])
-      ),
-//      floatingActionButton: FloatingActionButton(
-//        onPressed: () {
-//          print('+ pressed');
-//          //var ns = NotifyService();
-//          //ns.notifyTest();
-//          backgroundFetchHeadlessTask();
-//        },
-//        tooltip: 'Increment',
-//        child: Icon(Icons.add),
-//      ),
+              loading
+                  ? Center(child: CircularProgressIndicator())
+                  : places != null
+                      ? Column(mainAxisSize: MainAxisSize.max, children: [
+                          Expanded(flex: 1, child: googleMap),
+                          Expanded(
+                              flex: 1, child: PlacesListView(places: places)),
+                        ])
+                      : ListTile(
+                          title: Text('Location not detected ¯\\_(ツ)_/¯.'))),
     );
   }
 

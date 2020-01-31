@@ -40,7 +40,7 @@ class Page {
         this.editurl = data['editurl'],
         this.extract = data['extract'];
 
-  get latLong {
+  LatLong get latLong {
     if (coordinates.length > 0) {
       var pos = coordinates[0];
       return LatLong(pos['lat'], pos['lon']);
